@@ -1,0 +1,56 @@
+[
+  {
+    "title": "It's the first time you're meeting me. We're all at Newcomb playing ultimate frisbee. You see the frisbee rolling on the ground. What does Kevin yell out?",
+    "choice1": "Grab it!",
+    "choice2": "Knock it down!",
+    "choice3": "KICK THE SHIT OUT OF IT!!",
+    "choice4": "*Says nothing*",
+    "answer": "choice3",
+    "image": "../frisbee_on_ground_pixel.jpg"
+  },
+  {
+    "title": "We're having a classic horror movie night at either Kenji's mom's house. Back when Netflix had star ratings, what was the maximum amount of stars for a bad horror movie night.",
+    "choice1": "1",
+    "choice2": "2",
+    "choice3": "3",
+    "choice4": "4",
+    "answer": "choice2",
+    "image": "../watching_netflix_pixel.jpg"
+  },
+  {
+    "title": "Now we're at Josh's parents house playing mafia. All of a sudden you notice I'm missing. Where did I go?",
+    "choice1": "Bathroom",
+    "choice2": "Take a phone call",
+    "choice3": "Grab something from the kitchen",
+    "choice4": "Left without saying bye.",
+    "answer": "choice4",
+    "image": "../playing_mafia_game_pixel.jpg"
+  },
+  {
+    "title": "This time we're at the second hawaii trip with me, Kevin, Kenji, Austin, Tony, and Colin. We all take decide to take Kalua shots (except Colin). What happens to Tony?",
+    "choice1": "Takes it no problem",
+    "choice2": "Throws it up after telling us he's never thrown up from alcohol before",
+    "choice3": "Asks for another one",
+    "choice4": "Blacks out",
+    "answer": "choice2",
+    "image": "../oahu_shoreline_pixel.jpg"
+  },
+  {
+    "title": "Now We're headed to Big Bear. It's me and Josh with Tyler driving his jeep. On the way up the jeep breaks down. This turns into a like a 10 hour delay before we finally get there, but how far did we get up the mountain?",
+    "choice1": "Half way up",
+    "choice2": "Almost the top",
+    "choice3": "towards the beginning",
+    "choice4": "Literally the very beginning of the mountain",
+    "answer": "choice4",
+    "image": "../jeep_pic_pixel.jpg"
+  },
+  {
+    "title": "When it was me, Colin, Josh, Kevin, and Austin playing Yugioh one time, I was all ready to destroy Colin with my gadget cards with spell to increase their damage by double. When I declare my attack Colin has a god damn lady bug monster with a flip effect that destroys all 4 star monsters declaring an attack on him. How well did I take this?",
+    "choice1": "Ah damn well played man!",
+    "choice2": "Damn that sucks",
+    "choice3": "I'm done. *proceeds to rage quit*",
+    "choice4": "GG!",
+    "answer": "choice3",
+    "image": "../rage_quit_pixel.jpg"
+  }
+]

@@ -1,0 +1,1 @@
+{"root":["./src/env.d.ts","./src/main.ts","./src/data/stories.ts","./src/router/index.ts","./src/types/story.ts","./src/app.vue","./src/components/helloworld.vue","./src/components/memoryimage.vue","./src/components/storynode.vue","./src/components/storyoptions.vue","./src/views/homeview.vue","./src/views/notfound.vue","./src/views/storyview.vue"],"version":"5.9.3"}
