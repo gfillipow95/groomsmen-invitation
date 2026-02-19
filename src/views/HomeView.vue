@@ -7,24 +7,10 @@ const PENDING_GATE_KEY = 'groomsmen:v2:pendingGateChoice'
 
 function startWithChoice(choice: 'yes' | 'no') {
   localStorage.setItem(PENDING_GATE_KEY, choice)
-  const nextQuery: Record<string, string> = {}
-  const nameParam = route.query.name
-  const bestManParam = route.query.bestman
-
-  const normalizedName = Array.isArray(nameParam) ? nameParam[0] : nameParam
-  const normalizedBestMan = Array.isArray(bestManParam) ? bestManParam[0] : bestManParam
-
-  if (typeof normalizedName === 'string' && normalizedName.trim()) {
-    nextQuery.name = normalizedName.trim()
-  }
-
-  if (typeof normalizedBestMan === 'string' && normalizedBestMan.trim()) {
-    nextQuery.bestman = normalizedBestMan.trim()
-  }
-
   router.push({
-    path: '/story/friend',
-    query: nextQuery
+    name: 'story',
+    params: { friend: 'friend' },
+    query: route.query
   })
 }
 </script>

@@ -5,9 +5,9 @@ import StoryView from '@/views/StoryView.vue'
 import NotFoundView from '@/views/NotFound.vue'
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', component: HomeView },
-  { path: '/story/:friend', component: StoryView, props: true },
-  { path: '/:pathMatch(.*)*', component: NotFoundView }
+  { path: '/', name: 'home', component: HomeView },
+  { path: '/story/:friend', name: 'story', component: StoryView, props: true },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView }
 ]
 
 const router = createRouter({

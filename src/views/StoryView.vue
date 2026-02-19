@@ -104,10 +104,12 @@ function consumeQueryOverrides() {
     }
   }
 
-  if (route.query.bestman !== undefined) {
+  const bestManParam = route.query.bestman ?? route.query.bestMan
+  if (bestManParam !== undefined) {
     shouldReplace = true
     delete nextQuery.bestman
-    const parsed = parseBooleanQueryParam(normalizeQueryParam(route.query.bestman))
+    delete nextQuery.bestMan
+    const parsed = parseBooleanQueryParam(normalizeQueryParam(bestManParam))
     if (parsed !== null) {
       isBestMan.value = parsed
       localStorage.setItem(getStorageKey('isBestMan'), String(parsed))
@@ -351,7 +353,7 @@ function restartExperience() {
       localStorage.removeItem(key)
     }
   })
-  router.push('/')
+  router.push({ name: 'home' })
 }
 
 function goToProposalFromLastQuestion() {
@@ -474,7 +476,7 @@ watch(friendSlug, () => {
 })
 
 watch(
-  () => [route.query.name, route.query.bestman],
+  () => [route.query.name, route.query.bestman, route.query.bestMan],
   () => {
     consumeQueryOverrides()
   }
