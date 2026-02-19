@@ -1,0 +1,56 @@
+[
+  {
+    "title": "It's your first week knowing Gen at Newcomb. The frisbee starts rolling dead-center toward midfield and Kevin instantly yells the exact phrase everyone repeats for years. What was it?",
+    "choice1": "Kick it, but softly so we keep possession.",
+    "choice2": "Step on it and reset from the sideline.",
+    "choice3": "KICK THE SHIT OUT OF IT!!",
+    "choice4": "Leave it and call dead disc.",
+    "answer": "choice3",
+    "image": "../frisbee_on_ground_pixel.jpg"
+  },
+  {
+    "title": "At Kenji's mom's horror-movie nights, before thumbs-up/down replaced stars, what was the highest possible star rating on Netflix that we used to judge if the movie was trash or classic?",
+    "choice1": "3 stars",
+    "choice2": "5 stars",
+    "choice3": "10 stars",
+    "choice4": "4 stars",
+    "answer": "choice2",
+    "image": "../watching_netflix_pixel.jpg"
+  },
+  {
+    "title": "During mafia at Josh's parents' house, Gen suddenly disappears mid-game with zero explanation. Which option is the true memory?",
+    "choice1": "He went to the bathroom and came back in 2 minutes.",
+    "choice2": "He stepped outside to take a call.",
+    "choice3": "He went to the kitchen for snacks.",
+    "choice4": "He straight-up left without saying bye.",
+    "answer": "choice4",
+    "image": "../playing_mafia_game_pixel.jpg"
+  },
+  {
+    "title": "Second Hawaii trip: Gen, Kevin, Kenji, Austin, Tony, and Colin (who skipped the shot) take Kahlua shots together. What happened immediately after Tony's shot?",
+    "choice1": "He said it was smooth and asked for another.",
+    "choice2": "He threw up right after saying he never throws up from alcohol.",
+    "choice3": "He blacked out on the spot.",
+    "choice4": "He chased it with water and was totally fine.",
+    "answer": "choice2",
+    "image": "../oahu_shoreline_pixel.jpg"
+  },
+  {
+    "title": "Big Bear trip with Tyler driving and Gen/Josh in the Jeep turns into a brutal delay. After the breakdown and all the waiting, where had we actually made it on the mountain?",
+    "choice1": "Roughly halfway up.",
+    "choice2": "Near the top, almost there.",
+    "choice3": "Somewhere in the early lower section.",
+    "choice4": "Basically the very beginning of the mountain.",
+    "answer": "choice4",
+    "image": "../jeep_pic_pixel.jpg"
+  },
+  {
+    "title": "Yu-Gi-Oh night with Colin, Josh, Kevin, and Austin: Gen sets up gadget cards plus attack boost, declares attack, then Colin flips Ladybug and wipes the 4-stars. How did Gen actually react?",
+    "choice1": ""Ah, good counter" and kept playing.",
+    "choice2": "Took the L quietly and passed turn.",
+    "choice3": ""I'm done" and rage-quit.",
+    "choice4": "Said "GG" and shuffled for next duel.",
+    "answer": "choice3",
+    "image": "../rage_quit_pixel.jpg"
+  }
+]

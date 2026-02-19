@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import memories from '@/assets/shared/story.json'
 
 type Stage = 'gate' | 'setup' | 'memory' | 'lastQuestionGate' | 'proposal' | 'ending'
@@ -16,13 +16,18 @@ type MemoryItem = {
 }
 
 const route = useRoute()
+const router = useRouter()
 const friendSlug = computed(() => String(route.params.friend ?? 'friend'))
 const friendName = computed(
   () => friendSlug.value.charAt(0).toUpperCase() + friendSlug.value.slice(1)
 )
 
 const STORAGE_VERSION = 'v2'
+const STORAGE_PREFIX = `groomsmen:${STORAGE_VERSION}:`
+const PENDING_GATE_KEY = `groomsmen:${STORAGE_VERSION}:pendingGateChoice`
 const gateChoice = ref<'yes' | 'no' | null>(null)
+const expectedPlayerName = ref('')
+const isBestMan = ref(false)
 const playerNameInput = ref('')
 const playerName = ref('')
 const stage = ref<Stage>('gate')
@@ -33,19 +38,103 @@ const totalAttempts = ref(0)
 const wrongAttempts = ref(0)
 const noCount = ref(0)
 const lastQuestionFeedback = ref('')
+const nameMismatchMessage = ref('')
+const expandedImageSrc = ref('')
 
+const storyMemories = computed<MemoryItem[]>(() => memories as MemoryItem[])
+const setupDisplayName = computed(() => {
+  return playerName.value || expectedPlayerName.value || friendName.value
+})
 const setupLines = computed(() => [
-  `Sunday night. You, ${friendName.value}, and the crew are locked in at Gen's house for football.`,
+  `Sunday night. You, ${setupDisplayName.value}, and the crew are locked in at Gen's house for football.`,
   'The game is close. Trash talk is at all-time highs. Someone yells for more wings.',
   'The lights snap off. Every screen goes black. The room goes dead silent.',
   'A neon rift tears across the wall, and memories start pulling everyone through time.',
   'Only one way back: survive every memory and prove you still know the squad.'
 ])
 
-const storyMemories = computed<MemoryItem[]>(() => memories as MemoryItem[])
-
 function getStorageKey(suffix: string) {
   return `groomsmen:${STORAGE_VERSION}:${friendSlug.value}:${suffix}`
+}
+
+function clearSavedName() {
+  playerName.value = ''
+  playerNameInput.value = ''
+  localStorage.removeItem(getStorageKey('playerName'))
+}
+
+function normalizeQueryParam(param: unknown): string {
+  if (Array.isArray(param)) {
+    return typeof param[0] === 'string' ? param[0].trim() : ''
+  }
+
+  return typeof param === 'string' ? param.trim() : ''
+}
+
+function parseBooleanQueryParam(raw: string): boolean | null {
+  const normalized = raw.toLowerCase()
+  if (!normalized) {
+    return true
+  }
+
+  if (['1', 'true', 'yes', 'y'].includes(normalized)) {
+    return true
+  }
+
+  if (['0', 'false', 'no', 'n'].includes(normalized)) {
+    return false
+  }
+
+  return null
+}
+
+function consumeQueryOverrides() {
+  let shouldReplace = false
+  const nextQuery = { ...route.query }
+
+  const nameParam = route.query.name
+  const normalized = normalizeQueryParam(nameParam)
+
+  if (route.query.name !== undefined) {
+    shouldReplace = true
+    delete nextQuery.name
+    if (normalized) {
+      expectedPlayerName.value = normalized
+      localStorage.setItem(getStorageKey('expectedPlayerName'), normalized)
+    }
+  }
+
+  if (route.query.bestman !== undefined) {
+    shouldReplace = true
+    delete nextQuery.bestman
+    const parsed = parseBooleanQueryParam(normalizeQueryParam(route.query.bestman))
+    if (parsed !== null) {
+      isBestMan.value = parsed
+      localStorage.setItem(getStorageKey('isBestMan'), String(parsed))
+    }
+  }
+
+  if (shouldReplace) {
+    router.replace({
+      path: route.path,
+      query: nextQuery,
+      hash: route.hash
+    })
+  }
+}
+
+function consumePendingGateChoice() {
+  const pendingGateChoice = localStorage.getItem(PENDING_GATE_KEY)
+  if (pendingGateChoice !== 'yes' && pendingGateChoice !== 'no') {
+    return
+  }
+
+  localStorage.removeItem(PENDING_GATE_KEY)
+  gateChoice.value = pendingGateChoice
+  clearSavedName()
+  stage.value = 'gate'
+  feedback.value = ''
+  persistState()
 }
 
 function persistState() {
@@ -75,6 +164,8 @@ function restoreState() {
     gateChoice.value = savedGate
   }
 
+  expectedPlayerName.value = localStorage.getItem(getStorageKey('expectedPlayerName')) ?? ''
+  isBestMan.value = localStorage.getItem(getStorageKey('isBestMan')) === 'true'
   playerName.value = localStorage.getItem(getStorageKey('playerName')) ?? ''
   playerNameInput.value = playerName.value
 
@@ -143,8 +234,21 @@ function resolveImageSrc(imagePath?: string) {
   return new URL(`../assets/${filename}`, import.meta.url).href
 }
 
+function openExpandedImage(imagePath?: string) {
+  const resolved = resolveImageSrc(imagePath)
+  if (!resolved) {
+    return
+  }
+  expandedImageSrc.value = resolved
+}
+
+function closeExpandedImage() {
+  expandedImageSrc.value = ''
+}
+
 function chooseGate(choice: 'yes' | 'no') {
   gateChoice.value = choice
+  clearSavedName()
   feedback.value = ''
   persistState()
 }
@@ -156,7 +260,25 @@ function submitName() {
     return
   }
 
-  playerName.value = trimmed
+  const hasExpectedName = expectedPlayerName.value.trim().length > 0
+  const isCorrectName = trimmed.toLowerCase() === expectedPlayerName.value.trim().toLowerCase()
+  if (hasExpectedName && !isCorrectName) {
+    playerName.value = expectedPlayerName.value
+    feedback.value = ''
+    nameMismatchMessage.value = `Nice try ${expectedPlayerName.value}, your name isn't ${trimmed}.`
+    return
+  }
+
+  playerName.value = hasExpectedName ? expectedPlayerName.value : trimmed
+  nameMismatchMessage.value = ''
+  feedback.value = ''
+  stage.value = 'setup'
+  persistState()
+}
+
+function continueAfterNameMismatch() {
+  playerNameInput.value = ''
+  nameMismatchMessage.value = ''
   feedback.value = ''
   stage.value = 'setup'
   persistState()
@@ -211,6 +333,8 @@ function acceptProposal() {
 
 function restartExperience() {
   gateChoice.value = null
+  expectedPlayerName.value = ''
+  isBestMan.value = false
   playerName.value = ''
   playerNameInput.value = ''
   stage.value = 'gate'
@@ -221,7 +345,13 @@ function restartExperience() {
   wrongAttempts.value = 0
   noCount.value = 0
   lastQuestionFeedback.value = ''
-  persistState()
+  nameMismatchMessage.value = ''
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith(STORAGE_PREFIX)) {
+      localStorage.removeItem(key)
+    }
+  })
+  router.push('/')
 }
 
 function goToProposalFromLastQuestion() {
@@ -304,7 +434,7 @@ function buildNoResponseLines() {
           : phase === 2
             ? 'sad'
             : 'furious'
-    lines.push(`[${i + 1}/100 - ${tone}] ${base}`)
+    lines.push(`${base}`)
   }
 
   return lines
@@ -333,26 +463,31 @@ const gateResponse = computed(() => {
 
 onMounted(() => {
   restoreState()
+  consumePendingGateChoice()
+  consumeQueryOverrides()
 })
 
 watch(friendSlug, () => {
   restoreState()
+  consumePendingGateChoice()
+  consumeQueryOverrides()
 })
+
+watch(
+  () => [route.query.name, route.query.bestman],
+  () => {
+    consumeQueryOverrides()
+  }
+)
 </script>
 
 <template>
   <section class="min-h-screen bg-gradient-to-b from-zinc-950 via-black to-zinc-900 text-zinc-100">
     <div class="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-4 py-10 sm:px-6">
-      <header class="mb-6 flex items-center justify-between gap-3 text-xs uppercase tracking-[0.2em] text-zinc-400">
-        <p>Gen's Dimension Rift</p>
-        <p>Player Link: {{ friendSlug }}</p>
-      </header>
 
       <div class="rounded-xl border border-zinc-700/60 bg-zinc-950/70 p-6 shadow-[0_0_45px_rgba(255,255,255,0.06)] backdrop-blur-sm sm:p-8">
         <template v-if="stage === 'gate'">
           <p class="mb-2 text-xs uppercase tracking-[0.3em] text-red-400">Welcome</p>
-          <h1 class="mb-4 text-3xl font-semibold text-zinc-50 sm:text-4xl">You want to play a game?</h1>
-          <p class="mb-6 text-sm text-zinc-400">The game is already loaded, {{ friendName }}.</p>
 
           <div v-if="!gateChoice" class="mb-6 flex flex-wrap gap-3">
             <button
@@ -398,11 +533,26 @@ watch(friendSlug, () => {
             >
               Start Game
             </button>
+
+            <div
+              v-if="nameMismatchMessage"
+              class="mt-4 rounded-md border border-amber-400/40 bg-amber-500/10 p-3"
+            >
+              <p class="text-sm text-amber-100">
+                {{ nameMismatchMessage }}
+              </p>
+              <button
+                type="button"
+                class="mt-3 rounded-md border border-amber-300/70 bg-amber-400/20 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-amber-50 transition hover:bg-amber-400/35"
+                @click="continueAfterNameMismatch"
+              >
+                Continue
+              </button>
+            </div>
           </div>
         </template>
 
         <template v-else-if="stage === 'setup'">
-          <p class="mb-2 text-xs uppercase tracking-[0.3em] text-cyan-300">Setup Sequence</p>
           <h2 class="mb-6 text-2xl font-semibold text-zinc-50 sm:text-3xl">The Lights Go Out</h2>
 
           <div class="space-y-3 text-sm leading-relaxed text-zinc-200">
@@ -419,17 +569,18 @@ watch(friendSlug, () => {
         </template>
 
         <template v-else-if="stage === 'memory' && currentMemory">
-          <p class="mb-2 text-xs uppercase tracking-[0.3em] text-violet-300">
-            Memory {{ memoryIndex + 1 }} / {{ storyMemories.length }}
-          </p>
           <h2 class="mb-4 text-xl font-semibold leading-snug text-zinc-50 sm:text-2xl">{{ currentMemory.title }}</h2>
 
           <img
             v-if="currentMemory.image"
             :src="resolveImageSrc(currentMemory.image)"
             alt="Memory scene"
-            class="mb-6 h-52 w-full rounded-lg border border-zinc-700 object-cover sm:h-64"
+            class="mb-2 h-80 w-full cursor-zoom-in rounded-lg border border-zinc-700 bg-zinc-900 object-contain p-2 sm:h-[28rem]"
+            @click="openExpandedImage(currentMemory.image)"
           />
+          <p v-if="currentMemory.image" class="mb-6 text-xs uppercase tracking-[0.2em] text-zinc-500">
+            Tap image to expand
+          </p>
 
           <div class="grid gap-3 sm:grid-cols-2">
             <button
@@ -452,14 +603,8 @@ watch(friendSlug, () => {
               class="rounded-md border border-violet-400/70 bg-violet-600/15 px-5 py-2 text-sm font-semibold uppercase tracking-wider text-violet-100 transition hover:bg-violet-600/30"
               @click="submitMemoryAnswer"
             >
-              Lock Answer
+              Submit
             </button>
-            <p class="text-xs uppercase tracking-[0.2em] text-zinc-400">
-              Wrong attempts: {{ wrongAttempts }}
-            </p>
-            <p class="text-xs uppercase tracking-[0.2em] text-zinc-500">
-              Total tries: {{ totalAttempts }}
-            </p>
           </div>
         </template>
 
@@ -496,8 +641,19 @@ watch(friendSlug, () => {
           <p class="mb-2 text-xs uppercase tracking-[0.3em] text-amber-300">Final Room</p>
           <div class="mb-6 rounded-lg border border-zinc-700 bg-zinc-900/70 px-3 py-6 text-center">
             <p class="floating-text text-3xl font-bold text-amber-100 sm:text-4xl">
-              Will You Be My Groomsman?
+              {{ isBestMan ? 'Will You Be My Best Man?' : 'Will You Be My Groomsman?' }}
             </p>
+          </div>
+
+          <div
+            v-if="isBestMan"
+            class="mb-5 rounded-lg border border-amber-400/40 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-100"
+          >
+            We've had a ton of fun memories together. From cross country days, to all the weekend
+            hangouts in your basement and at Kenji's house, to all the time we spent on League, it's
+            meant a lot having you as one of my best friends. It was because of you inviting me out
+            to play ultimate with the guys that I became part of da homies. As I take this next step
+            in life and marriage, I would love it if you would be my best man.
           </div>
 
           <p class="mb-5 text-sm text-zinc-300">
@@ -520,10 +676,6 @@ watch(friendSlug, () => {
               No
             </button>
           </div>
-
-          <p class="mt-5 text-xs uppercase tracking-[0.2em] text-zinc-500">
-            No button pressed: {{ noCount }} times
-          </p>
         </template>
 
         <template v-else-if="stage === 'ending'">
@@ -546,6 +698,27 @@ watch(friendSlug, () => {
         </template>
 
         <p v-if="feedback" class="mt-5 text-sm text-amber-200">{{ feedback }}</p>
+      </div>
+    </div>
+
+    <div
+      v-if="expandedImageSrc"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4 py-6"
+      @click.self="closeExpandedImage"
+    >
+      <div class="w-full max-w-6xl rounded-lg border border-zinc-700 bg-zinc-950 p-3">
+        <img
+          :src="expandedImageSrc"
+          alt="Expanded memory scene"
+          class="max-h-[80vh] w-full rounded-md object-contain"
+        />
+        <button
+          type="button"
+          class="mt-3 rounded-md border border-zinc-500 bg-zinc-800 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-100 transition hover:bg-zinc-700"
+          @click="closeExpandedImage"
+        >
+          Close
+        </button>
       </div>
     </div>
   </section>
