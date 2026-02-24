@@ -689,6 +689,9 @@ watch(
           <p class="mb-5 text-sm text-zinc-300">
             Final stats: {{ wrongAttempts }} wrong answers across {{ totalAttempts }} total attempts.
           </p>
+          <p class="mb-6 text-sm font-medium text-emerald-200">
+            Let me know you're ready to suit up in the bach group message.
+          </p>
 
           <button
             type="button"
